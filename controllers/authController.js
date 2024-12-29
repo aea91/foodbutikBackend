@@ -124,51 +124,45 @@ exports.handleDataDeletion = async (req, res) => {
       try {
             const { signed_request } = req.body;
 
-            // Facebook'tan gelen signed request'i doğrula
             if (!signed_request) {
-                  return res.status(400).json(
-                        BaseResponse.error(null, 'Signed request is required')
-                  );
+                  return res.status(400).json({
+                        error: {
+                              message: 'Signed request is required',
+                              code: 400
+                        }
+                  });
             }
 
-            // User ID'yi al
-            const [user] = await db.execute(
-                  'SELECT * FROM users WHERE facebook_id = ?',
-                  [req.body.user_id]
-            );
-
-            if (user) {
-                  // Kullanıcı verilerini sil
-                  await db.execute('DELETE FROM push_tokens WHERE user_id = ?', [user.id]);
-                  await db.execute('DELETE FROM users WHERE id = ?', [user.id]);
-            }
-
-            // Facebook'a başarılı yanıt dön
+            // Facebook'un beklediği formatta yanıt
             res.json({
-                  url: `http://104.248.36.45/api/auth/facebook/data-deletion-status?id=${req.body.user_id}`,
-                  confirmation_code: req.body.user_id
+                  url: `http://104.248.36.45/api/auth/facebook/data-deletion-status`,
+                  confirmation_code: Date.now().toString()
             });
       } catch (error) {
             console.error('Data deletion error:', error);
-            res.status(500).json(BaseResponse.error(error));
+            res.status(500).json({
+                  error: {
+                        message: error.message,
+                        code: 500
+                  }
+            });
       }
 };
 
 exports.getDataDeletionStatus = async (req, res) => {
       try {
-            const { id } = req.query;
-
-            // Silme işleminin durumunu kontrol et
-            const [user] = await db.execute(
-                  'SELECT * FROM users WHERE facebook_id = ?',
-                  [id]
-            );
-
-            const status = user ? 'pending' : 'complete';
-
-            res.json({ status });
+            // Facebook'un beklediği formatta yanıt
+            res.json({
+                  status: 'complete',
+                  completion_timestamp: Math.floor(Date.now() / 1000)
+            });
       } catch (error) {
             console.error('Data deletion status error:', error);
-            res.status(500).json(BaseResponse.error(error));
+            res.status(500).json({
+                  error: {
+                        message: error.message,
+                        code: 500
+                  }
+            });
       }
 }; 
