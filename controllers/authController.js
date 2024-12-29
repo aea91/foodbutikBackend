@@ -46,9 +46,12 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
       try {
             const { email, password } = req.body;
+            console.log('Login attempt for:', email); // Debug log
 
             // Find user
             const [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+            console.log('Found users:', users); // Debug log
+
             if (users.length === 0) {
                   return res.status(401).json({ message: 'Authentication failed' });
             }
@@ -57,6 +60,8 @@ exports.login = async (req, res) => {
 
             // Check password
             const isValid = await bcrypt.compare(password, user.password);
+            console.log('Password valid:', isValid); // Debug log
+
             if (!isValid) {
                   return res.status(401).json({ message: 'Authentication failed' });
             }
@@ -72,7 +77,11 @@ exports.login = async (req, res) => {
                   userId: user.id
             });
       } catch (error) {
-            res.status(500).json({ message: 'Server error' });
+            console.error('Login error:', error); // Detailed error log
+            res.status(500).json({
+                  message: 'Server error',
+                  error: error.message // Hata detayını client'a gönder (development için)
+            });
       }
 };
 
