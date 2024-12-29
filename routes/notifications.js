@@ -1,17 +1,32 @@
 const express = require('express');
 const router = express.Router();
-const BaseResponse = require('../models/base/BaseResponse');
+const { body } = require('express-validator');
+const notificationController = require('../controllers/notificationController');
 
-router.post('/register-token', (req, res) => {
-      res.json(
-            BaseResponse.success(null, 'Token registration endpoint')
-      );
-});
+// Validation middleware
+const tokenValidation = [
+      body('userId').isInt(),
+      body('token').notEmpty(),
+      body('platform').optional().isIn(['android', 'ios'])
+];
 
-router.post('/send', (req, res) => {
-      res.json(
-            BaseResponse.success(null, 'Send notification endpoint')
-      );
-});
+const notificationValidation = [
+      body('userId').isInt(),
+      body('title').notEmpty(),
+      body('body').notEmpty(),
+      body('data').optional().isObject()
+];
+
+const bulkNotificationValidation = [
+      body('userIds').isArray(),
+      body('title').notEmpty(),
+      body('body').notEmpty(),
+      body('data').optional().isObject()
+];
+
+// Routes
+router.post('/register-token', tokenValidation, notificationController.registerToken);
+router.post('/send', notificationValidation, notificationController.sendNotification);
+router.post('/send-bulk', bulkNotificationValidation, notificationController.sendBulkNotifications);
 
 module.exports = router; 
