@@ -11,21 +11,26 @@ exports.register = async (req, res) => {
             }
 
             const { name, email, password } = req.body;
+            console.log('Register attempt for:', { name, email }); // Debug log
 
             // Check if user exists
             const [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+            console.log('Existing users:', users); // Debug log
+
             if (users.length > 0) {
                   return res.status(400).json({ message: 'Email already exists' });
             }
 
             // Hash password
             const hashedPassword = await bcrypt.hash(password, 12);
+            console.log('Password hashed'); // Debug log
 
             // Create user
             const [result] = await db.execute(
                   'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
                   [name, email, hashedPassword]
             );
+            console.log('User created:', result); // Debug log
 
             const token = jwt.sign(
                   { userId: result.insertId },
@@ -39,7 +44,12 @@ exports.register = async (req, res) => {
                   userId: result.insertId
             });
       } catch (error) {
-            res.status(500).json({ message: 'Server error' });
+            console.error('Registration error:', error); // Detailed error log
+            res.status(500).json({
+                  message: 'Server error',
+                  error: error.message, // Hata detayını göster
+                  stack: error.stack // Hata stack trace'ini göster
+            });
       }
 };
 
