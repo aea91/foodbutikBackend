@@ -2,35 +2,32 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const db = require('../config/database');
+const BaseResponse = require('../models/base/BaseResponse');
 
 exports.register = async (req, res) => {
       try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                  return res.status(400).json({ errors: errors.array() });
+                  return res.status(400).json(
+                        BaseResponse.error(null, errors.array()[0].msg)
+                  );
             }
 
             const { name, email, password } = req.body;
-            console.log('Register attempt for:', { name, email }); // Debug log
+            console.log('Register attempt for:', { name, email });
 
-            // Check if user exists
             const [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
-            console.log('Existing users:', users); // Debug log
-
             if (users.length > 0) {
-                  return res.status(400).json({ message: 'Email already exists' });
+                  return res.status(400).json(
+                        BaseResponse.error(null, 'Email already exists')
+                  );
             }
 
-            // Hash password
             const hashedPassword = await bcrypt.hash(password, 12);
-            console.log('Password hashed'); // Debug log
-
-            // Create user
             const [result] = await db.execute(
                   'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
                   [name, email, hashedPassword]
             );
-            console.log('User created:', result); // Debug log
 
             const token = jwt.sign(
                   { userId: result.insertId },
@@ -38,42 +35,39 @@ exports.register = async (req, res) => {
                   { expiresIn: '24h' }
             );
 
-            res.status(201).json({
-                  message: 'User created successfully',
-                  token,
-                  userId: result.insertId
-            });
+            res.status(201).json(
+                  BaseResponse.success({
+                        token,
+                        userId: result.insertId
+                  }, 'User created successfully')
+            );
       } catch (error) {
-            console.error('Registration error:', error); // Detailed error log
-            res.status(500).json({
-                  message: 'Server error',
-                  error: error.message, // Hata detayını göster
-                  stack: error.stack // Hata stack trace'ini göster
-            });
+            console.error('Registration error:', error);
+            res.status(500).json(
+                  BaseResponse.error(error)
+            );
       }
 };
 
 exports.login = async (req, res) => {
       try {
             const { email, password } = req.body;
-            console.log('Login attempt for:', email); // Debug log
+            console.log('Login attempt for:', email);
 
-            // Find user
             const [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
-            console.log('Found users:', users); // Debug log
-
             if (users.length === 0) {
-                  return res.status(401).json({ message: 'Authentication failed' });
+                  return res.status(401).json(
+                        BaseResponse.error(null, 'Authentication failed')
+                  );
             }
 
             const user = users[0];
-
-            // Check password
             const isValid = await bcrypt.compare(password, user.password);
-            console.log('Password valid:', isValid); // Debug log
 
             if (!isValid) {
-                  return res.status(401).json({ message: 'Authentication failed' });
+                  return res.status(401).json(
+                        BaseResponse.error(null, 'Authentication failed')
+                  );
             }
 
             const token = jwt.sign(
@@ -82,16 +76,17 @@ exports.login = async (req, res) => {
                   { expiresIn: '24h' }
             );
 
-            res.json({
-                  token,
-                  userId: user.id
-            });
+            res.json(
+                  BaseResponse.success({
+                        token,
+                        userId: user.id
+                  }, 'Login successful')
+            );
       } catch (error) {
-            console.error('Login error:', error); // Detailed error log
-            res.status(500).json({
-                  message: 'Server error',
-                  error: error.message // Hata detayını client'a gönder (development için)
-            });
+            console.error('Login error:', error);
+            res.status(500).json(
+                  BaseResponse.error(error)
+            );
       }
 };
 
