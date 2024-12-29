@@ -17,6 +17,7 @@ app.use(passport.initialize());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/welcome', welcomeRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
