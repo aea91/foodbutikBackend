@@ -91,5 +91,84 @@ exports.login = async (req, res) => {
 };
 
 exports.facebookCallback = async (req, res) => {
-      // Facebook authentication logic
+      try {
+            const token = jwt.sign(
+                  { userId: req.user.id },
+                  process.env.JWT_SECRET,
+                  { expiresIn: '24h' }
+            );
+
+            // Başarılı login sonrası yönlendirme URL'i
+            const redirectUrl = `foodbutik://login-success?token=${token}&userId=${req.user.id}`;
+
+            res.json(
+                  BaseResponse.success({
+                        token,
+                        userId: req.user.id,
+                        user: {
+                              name: req.user.name,
+                              email: req.user.email,
+                              profile_picture: req.user.profile_picture
+                        }
+                  }, 'Facebook login successful')
+            );
+      } catch (error) {
+            console.error('Facebook callback error:', error);
+            res.status(500).json(
+                  BaseResponse.error(error)
+            );
+      }
+};
+
+exports.handleDataDeletion = async (req, res) => {
+      try {
+            const { signed_request } = req.body;
+
+            // Facebook'tan gelen signed request'i doğrula
+            if (!signed_request) {
+                  return res.status(400).json(
+                        BaseResponse.error(null, 'Signed request is required')
+                  );
+            }
+
+            // User ID'yi al
+            const [user] = await db.execute(
+                  'SELECT * FROM users WHERE facebook_id = ?',
+                  [req.body.user_id]
+            );
+
+            if (user) {
+                  // Kullanıcı verilerini sil
+                  await db.execute('DELETE FROM push_tokens WHERE user_id = ?', [user.id]);
+                  await db.execute('DELETE FROM users WHERE id = ?', [user.id]);
+            }
+
+            // Facebook'a başarılı yanıt dön
+            res.json({
+                  url: `http://104.248.36.45/api/auth/facebook/data-deletion-status?id=${req.body.user_id}`,
+                  confirmation_code: req.body.user_id
+            });
+      } catch (error) {
+            console.error('Data deletion error:', error);
+            res.status(500).json(BaseResponse.error(error));
+      }
+};
+
+exports.getDataDeletionStatus = async (req, res) => {
+      try {
+            const { id } = req.query;
+
+            // Silme işleminin durumunu kontrol et
+            const [user] = await db.execute(
+                  'SELECT * FROM users WHERE facebook_id = ?',
+                  [id]
+            );
+
+            const status = user ? 'pending' : 'complete';
+
+            res.json({ status });
+      } catch (error) {
+            console.error('Data deletion status error:', error);
+            res.status(500).json(BaseResponse.error(error));
+      }
 }; 
