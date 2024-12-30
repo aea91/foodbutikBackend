@@ -31,21 +31,25 @@ exports.getUsers = async (req, res) => {
 
 exports.searchUsers = async (req, res) => {
       try {
-            const { query } = req.query;
+            const { query = '' } = req.query;
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 10;
             const offset = (page - 1) * limit;
 
+            const searchPattern = `%${query}%`;
+
             // Arama kriterlerine göre toplam sayıyı al
             const [total] = await db.execute(
                   'SELECT COUNT(*) as count FROM users WHERE name LIKE ? OR email LIKE ?',
-                  [`%${query}%`, `%${query}%`]
+                  [searchPattern, searchPattern]
             );
 
             // Kullanıcıları ara
             const [users] = await db.execute(
-                  'SELECT id, name, email, profile_picture, created_at FROM users WHERE name LIKE ? OR email LIKE ? LIMIT ? OFFSET ?',
-                  [`%${query}%`, `%${query}%`, limit, offset]
+                  'SELECT id, name, email, profile_picture, created_at FROM users ' +
+                  'WHERE name LIKE ? OR email LIKE ? ' +
+                  'ORDER BY created_at DESC LIMIT ? OFFSET ?',
+                  [searchPattern, searchPattern, limit, offset]
             );
 
             res.json(
