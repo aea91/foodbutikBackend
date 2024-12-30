@@ -1,8 +1,6 @@
 {
       "info": {
-            "name": "Auth System API",
-            "_postman_id": "unique-id",
-            "description": "Authentication System API endpoints",
+            "name": "FoodButik API",
             "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
       },
       "item": [
@@ -13,6 +11,7 @@
                               "name": "Register",
                               "request": {
                                     "method": "POST",
+                                    "url": "http://104.248.36.45/api/auth/register",
                                     "header": [
                                           {
                                                 "key": "Content-Type",
@@ -22,17 +21,6 @@
                                     "body": {
                                           "mode": "raw",
                                           "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"123456\"\n}"
-                                    },
-                                    "url": {
-                                          "raw": "{{base_url}}/api/auth/register",
-                                          "host": [
-                                                "{{base_url}}"
-                                          ],
-                                          "path": [
-                                                "api",
-                                                "auth",
-                                                "register"
-                                          ]
                                     }
                               }
                         },
@@ -40,6 +28,7 @@
                               "name": "Login",
                               "request": {
                                     "method": "POST",
+                                    "url": "http://104.248.36.45/api/auth/login",
                                     "header": [
                                           {
                                                 "key": "Content-Type",
@@ -49,27 +38,120 @@
                                     "body": {
                                           "mode": "raw",
                                           "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"123456\"\n}"
-                                    },
+                                    }
+                              }
+                        },
+                        {
+                              "name": "Facebook Login",
+                              "request": {
+                                    "method": "GET",
+                                    "url": "http://104.248.36.45/api/auth/facebook"
+                              }
+                        }
+                  ]
+            },
+            {
+                  "name": "Users",
+                  "item": [
+                        {
+                              "name": "Get Users",
+                              "request": {
+                                    "method": "GET",
                                     "url": {
-                                          "raw": "{{base_url}}/api/auth/login",
-                                          "host": [
-                                                "{{base_url}}"
-                                          ],
-                                          "path": [
-                                                "api",
-                                                "auth",
-                                                "login"
+                                          "raw": "http://104.248.36.45/api/users?page=1&limit=10",
+                                          "query": [
+                                                {
+                                                      "key": "page",
+                                                      "value": "1"
+                                                },
+                                                {
+                                                      "key": "limit",
+                                                      "value": "10"
+                                                }
+                                          ]
+                                    }
+                              }
+                        },
+                        {
+                              "name": "Search Users",
+                              "request": {
+                                    "method": "GET",
+                                    "url": {
+                                          "raw": "http://104.248.36.45/api/users/search?query=test&page=1&limit=10",
+                                          "query": [
+                                                {
+                                                      "key": "query",
+                                                      "value": "test"
+                                                },
+                                                {
+                                                      "key": "page",
+                                                      "value": "1"
+                                                },
+                                                {
+                                                      "key": "limit",
+                                                      "value": "10"
+                                                }
                                           ]
                                     }
                               }
                         }
                   ]
-            }
-      ],
-      "variable": [
+            },
             {
-                  "key": "base_url",
-                  "value": "http://localhost:3000"
+                  "name": "Notifications",
+                  "item": [
+                        {
+                              "name": "Register Token",
+                              "request": {
+                                    "method": "POST",
+                                    "url": "http://104.248.36.45/api/notifications/register-token",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"userId\": 1,\n    \"token\": \"firebase_fcm_token_here\",\n    \"platform\": \"android\"\n}"
+                                    }
+                              }
+                        },
+                        {
+                              "name": "Send Notification",
+                              "request": {
+                                    "method": "POST",
+                                    "url": "http://104.248.36.45/api/notifications/send",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"userId\": 1,\n    \"title\": \"Test Notification\",\n    \"body\": \"This is a test notification\",\n    \"data\": {\n        \"type\": \"test\",\n        \"action\": \"open_app\"\n    }\n}"
+                                    }
+                              }
+                        },
+                        {
+                              "name": "Send Bulk Notification",
+                              "request": {
+                                    "method": "POST",
+                                    "url": "http://104.248.36.45/api/notifications/send-bulk",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"userIds\": [1, 2, 3],\n    \"title\": \"Bulk Test Notification\",\n    \"body\": \"This is a bulk test notification\",\n    \"data\": {\n        \"type\": \"bulk_test\",\n        \"action\": \"open_profile\"\n    }\n}"
+                                    }
+                              }
+                        }
+                  ]
             }
       ]
 }

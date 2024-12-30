@@ -6,6 +6,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const notificationRoutes = require('./routes/notifications');
 const welcomeRoutes = require('./routes/welcome');
+const userRoutes = require('./routes/users');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(passport.initialize());
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/welcome', welcomeRoutes);
+app.use('/api/users', userRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
