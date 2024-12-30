@@ -8,11 +8,12 @@ exports.getUsers = async (req, res) => {
             const offset = (page - 1) * limit;
 
             // Toplam kayıt sayısını al
-            const [total] = await db.execute('SELECT COUNT(*) as count FROM users');
+            const [rows] = await db.execute('SELECT COUNT(*) as total FROM users');
+            const totalItems = rows[0].total;
 
             // Kullanıcıları getir
             const [users] = await db.execute(
-                  'SELECT id, name, email, profile_picture, created_at FROM users LIMIT ? OFFSET ?',
+                  'SELECT id, name, email, profile_picture, created_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?',
                   [limit, offset]
             );
 
@@ -20,7 +21,7 @@ exports.getUsers = async (req, res) => {
                   BaseResponse.paginated(users, {
                         page,
                         limit,
-                        totalItems: total[0].count
+                        totalItems
                   }, 'Users retrieved successfully')
             );
       } catch (error) {
@@ -39,10 +40,11 @@ exports.searchUsers = async (req, res) => {
             const searchPattern = `%${query}%`;
 
             // Arama kriterlerine göre toplam sayıyı al
-            const [total] = await db.execute(
-                  'SELECT COUNT(*) as count FROM users WHERE name LIKE ? OR email LIKE ?',
+            const [rows] = await db.execute(
+                  'SELECT COUNT(*) as total FROM users WHERE name LIKE ? OR email LIKE ?',
                   [searchPattern, searchPattern]
             );
+            const totalItems = rows[0].total;
 
             // Kullanıcıları ara
             const [users] = await db.execute(
@@ -56,7 +58,7 @@ exports.searchUsers = async (req, res) => {
                   BaseResponse.paginated(users, {
                         page,
                         limit,
-                        totalItems: total[0].count
+                        totalItems
                   }, 'Users search completed')
             );
       } catch (error) {
