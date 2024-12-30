@@ -1,7 +1,17 @@
+/**
+ * Bildirim işlemlerini yöneten controller
+ * FCM token kayıt ve bildirim gönderme işlemlerini yönetir
+ */
+
 const db = require('../config/database');
 const firebase = require('../config/firebase');
 const BaseResponse = require('../models/base/BaseResponse');
 
+/**
+ * FCM token'ı kaydeder
+ * @param {Object} req - userId, token ve platform bilgilerini içerir
+ * @param {Object} res - Kayıt sonucunu döner
+ */
 exports.registerToken = async (req, res) => {
       const connection = await db.getConnection();
       try {
@@ -48,15 +58,23 @@ exports.registerToken = async (req, res) => {
       }
 };
 
+/**
+ * Tekil kullanıcıya bildirim gönderir
+ * @param {Object} req - userId, title, body ve data bilgilerini içerir
+ * @param {Object} res - Gönderim sonucunu döner
+ */
 exports.sendNotification = async (req, res) => {
       const connection = await db.getConnection();
       try {
             const { userId, title, body, data = {} } = req.body;
 
+            // Get user's FCM token
             const [tokens] = await connection.query(
                   'SELECT token FROM push_tokens WHERE user_id = ?',
                   [userId]
             );
+
+            console.log('Found tokens for user:', tokens); // Debug log
 
             if (tokens.length === 0) {
                   return res.status(404).json(
@@ -65,6 +83,7 @@ exports.sendNotification = async (req, res) => {
             }
 
             const token = tokens[0].token;
+            console.log('Using token:', token); // Debug log
 
             // Prepare notification
             const message = {
@@ -95,12 +114,19 @@ exports.sendNotification = async (req, res) => {
                   }
             };
 
+            console.log('Sending message:', message); // Debug log
+
             // Send notification
             const response = await firebase.messaging().send(message);
 
+            console.log('Firebase response:', response); // Debug log
+
             res.json(
                   BaseResponse.success(
-                        { messageId: response },
+                        {
+                              messageId: response,
+                              token: token // Debug için token'ı da dönelim
+                        },
                         'Notification sent successfully'
                   )
             );
@@ -112,6 +138,11 @@ exports.sendNotification = async (req, res) => {
       }
 };
 
+/**
+ * Toplu bildirim gönderir
+ * @param {Object} req - userIds, title, body ve data bilgilerini içerir
+ * @param {Object} res - Gönderim sonucunu döner
+ */
 exports.sendBulkNotifications = async (req, res) => {
       const connection = await db.getConnection();
       try {

@@ -1,32 +1,18 @@
+/**
+ * Bildirim işlemleri için route tanımlamaları
+ * FCM token kayıt ve bildirim gönderme endpoint'lerini içerir
+ */
 const express = require('express');
 const router = express.Router();
-const { body } = require('express-validator');
 const notificationController = require('../controllers/notificationController');
 
-// Validation middleware
-const tokenValidation = [
-      body('userId').isInt(),
-      body('token').notEmpty(),
-      body('platform').optional().isIn(['android', 'ios'])
-];
+// FCM token kaydet
+router.post('/register-token', notificationController.registerToken);
 
-const notificationValidation = [
-      body('userId').isInt(),
-      body('title').notEmpty(),
-      body('body').notEmpty(),
-      body('data').optional().isObject()
-];
+// Tekil bildirim gönder
+router.post('/send', notificationController.sendNotification);
 
-const bulkNotificationValidation = [
-      body('userIds').isArray(),
-      body('title').notEmpty(),
-      body('body').notEmpty(),
-      body('data').optional().isObject()
-];
-
-// Routes
-router.post('/register-token', tokenValidation, notificationController.registerToken);
-router.post('/send', notificationValidation, notificationController.sendNotification);
-router.post('/send-bulk', bulkNotificationValidation, notificationController.sendBulkNotifications);
+// Toplu bildirim gönder
+router.post('/send-bulk', notificationController.sendBulkNotifications);
 
 module.exports = router; 

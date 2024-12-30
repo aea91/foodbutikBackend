@@ -1,29 +1,46 @@
+/**
+ * Kimlik doğrulama işlemleri için route tanımlamaları
+ * Kayıt, giriş ve Facebook OAuth endpoint'lerini içerir
+ */
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 const passport = require('../config/passport');
 
-// Validation middleware
+/**
+ * Kullanıcı kaydı için validasyon kuralları
+ */
 const registerValidation = [
-      body('name').notEmpty().trim(),
-      body('email').isEmail(),
-      body('password').isLength({ min: 6 })
+      body('name').trim().notEmpty().withMessage('Name is required'),
+      body('email').isEmail().withMessage('Please enter a valid email'),
+      body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ];
 
-// Routes
+// Kullanıcı kaydı
 router.post('/register', registerValidation, authController.register);
+
+// Kullanıcı girişi
 router.post('/login', authController.login);
+
+// Facebook OAuth rotaları
 router.get('/facebook', passport.authenticate('facebook', {
-      scope: ['email', 'public_profile']
+      scope: ['email']
 }));
+
+// Facebook callback
 router.get('/facebook/callback',
-      passport.authenticate('facebook', { session: false }),
+      passport.authenticate('facebook', {
+            session: false,
+            failureRedirect: '/login'
+      }),
       authController.facebookCallback
 );
 
-// Data deletion routes
+// Facebook veri silme webhook'u
 router.post('/facebook/data-deletion', authController.handleDataDeletion);
+
+// Facebook veri silme durumu kontrolü
 router.get('/facebook/data-deletion-status', authController.getDataDeletionStatus);
 
 module.exports = router; 

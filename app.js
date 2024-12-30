@@ -1,26 +1,26 @@
+/**
+ * Ana uygulama dosyası
+ * Express sunucusu yapılandırması ve route tanımlamalarını içerir
+ */
 const express = require('express');
 const cors = require('cors');
 const passport = require('passport');
 require('dotenv').config();
 
-const authRoutes = require('./routes/auth');
-const notificationRoutes = require('./routes/notifications');
-const welcomeRoutes = require('./routes/welcome');
-const userRoutes = require('./routes/users');
+// Ana route modülünü import et
+const routes = require('./routes');
 
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(passport.initialize());
+// Middleware yapılandırması
+app.use(cors());                    // Cross-Origin Resource Sharing
+app.use(express.json());           // JSON request body parser
+app.use(passport.initialize());    // Passport kimlik doğrulama
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/welcome', welcomeRoutes);
-app.use('/api/users', userRoutes);
+// Tüm API route'larını /api prefix'i ile yapılandır
+app.use('/api', routes);
 
+// Sunucuyu başlat
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

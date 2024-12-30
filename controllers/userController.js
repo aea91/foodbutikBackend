@@ -1,6 +1,15 @@
+/**
+ * Kullanıcı işlemlerini yöneten controller
+ * Kullanıcı listeleme ve arama işlemlerini yönetir
+ */
 const db = require('../config/database');
 const BaseResponse = require('../models/base/BaseResponse');
 
+/**
+ * Kullanıcıları listeler (sayfalama ile)
+ * @param {Object} req - page ve limit query parametrelerini içerir
+ * @param {Object} res - Kullanıcı listesini döner
+ */
 exports.getUsers = async (req, res) => {
       try {
             const page = parseInt(req.query.page) || 1;
@@ -37,6 +46,11 @@ exports.getUsers = async (req, res) => {
       }
 };
 
+/**
+ * Kullanıcıları arar (sayfalama ile)
+ * @param {Object} req - query, page ve limit parametrelerini içerir
+ * @param {Object} res - Arama sonuçlarını döner
+ */
 exports.searchUsers = async (req, res) => {
       try {
             const { query = '' } = req.query;

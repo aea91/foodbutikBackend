@@ -1,9 +1,18 @@
+/**
+ * Kimlik doğrulama işlemlerini yöneten controller
+ * Kayıt, giriş ve Facebook OAuth işlemlerini yönetir
+ */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const db = require('../config/database');
 const BaseResponse = require('../models/base/BaseResponse');
 
+/**
+ * Yeni kullanıcı kaydı
+ * @param {Object} req - name, email ve password bilgilerini içerir
+ * @param {Object} res - Kayıt sonucunu ve JWT token döner
+ */
 exports.register = async (req, res) => {
       try {
             const errors = validationResult(req);
@@ -49,6 +58,11 @@ exports.register = async (req, res) => {
       }
 };
 
+/**
+ * Kullanıcı girişi
+ * @param {Object} req - email ve password bilgilerini içerir
+ * @param {Object} res - Giriş sonucunu ve JWT token döner
+ */
 exports.login = async (req, res) => {
       const connection = await db.getConnection();
       try {
@@ -96,6 +110,11 @@ exports.login = async (req, res) => {
       }
 };
 
+/**
+ * Facebook OAuth callback işleyicisi
+ * @param {Object} req - Facebook profil bilgilerini içerir
+ * @param {Object} res - Giriş sonucunu ve JWT token döner
+ */
 exports.facebookCallback = async (req, res) => {
       try {
             const token = jwt.sign(
@@ -126,6 +145,11 @@ exports.facebookCallback = async (req, res) => {
       }
 };
 
+/**
+ * Facebook veri silme isteği işleyicisi
+ * @param {Object} req - Facebook signed request içerir
+ * @param {Object} res - Silme işlemi URL'ini döner
+ */
 exports.handleDataDeletion = async (req, res) => {
       try {
             const { signed_request } = req.body;
@@ -155,6 +179,11 @@ exports.handleDataDeletion = async (req, res) => {
       }
 };
 
+/**
+ * Facebook veri silme durumu kontrolü
+ * @param {Object} req - Silme işlemi ID'sini içerir
+ * @param {Object} res - Silme işlemi durumunu döner
+ */
 exports.getDataDeletionStatus = async (req, res) => {
       try {
             // Facebook'un beklediği formatta yanıt

@@ -1,24 +1,22 @@
+/**
+ * Karşılama sayfası route tanımlamaları
+ * API'nin çalışıp çalışmadığını kontrol etmek için kullanılır
+ */
 const express = require('express');
 const router = express.Router();
-const BaseResponse = require('../models/base/BaseResponse');
 
+/**
+ * Karşılama mesajı döndürür
+ * @route GET /api/welcome
+ * @returns {Object} Karşılama mesajı ve API versiyonu
+ */
 router.get('/', (req, res) => {
-      res.json(
-            BaseResponse.success({
-                  version: '1.0.0',
-                  endpoints: {
-                        auth: {
-                              register: '/api/auth/register',
-                              login: '/api/auth/login',
-                              facebook: '/api/auth/facebook'
-                        },
-                        notifications: {
-                              registerToken: '/api/notifications/register-token',
-                              send: '/api/notifications/send'
-                        }
-                  }
-            }, 'Welcome to the Authentication API')
-      );
+      res.json({
+            message: 'Welcome to FoodButik API',
+            version: '1.0.0',
+            status: 'active',
+            timestamp: new Date().toISOString()
+      });
 });
 
 module.exports = router; 
