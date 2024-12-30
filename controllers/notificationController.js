@@ -3,6 +3,7 @@ const firebase = require('../config/firebase');
 const BaseResponse = require('../models/base/BaseResponse');
 
 exports.registerToken = async (req, res) => {
+      const connection = await db.getConnection();
       try {
             const { userId, token, platform = 'android' } = req.body;
 
@@ -14,23 +15,36 @@ exports.registerToken = async (req, res) => {
             }
 
             // Delete old token if exists
-            await db.execute('DELETE FROM push_tokens WHERE user_id = ?', [userId]);
+            await connection.query(
+                  'DELETE FROM push_tokens WHERE user_id = ?',
+                  [userId]
+            );
 
             // Save new token
-            await db.execute(
+            await connection.query(
                   'INSERT INTO push_tokens (user_id, token, platform) VALUES (?, ?, ?)',
                   [userId, token, platform]
             );
 
+            // Verify token was saved
+            const [savedTokens] = await connection.query(
+                  'SELECT * FROM push_tokens WHERE user_id = ?',
+                  [userId]
+            );
+
+            console.log('Saved token:', savedTokens[0]); // Debug için log
+
             res.json(
                   BaseResponse.success(
-                        { userId, platform },
+                        { userId, platform, token: savedTokens[0]?.token },
                         'Device token registered successfully'
                   )
             );
       } catch (error) {
             console.error('Token registration error:', error);
             res.status(500).json(BaseResponse.error(error));
+      } finally {
+            connection.release();
       }
 };
 
@@ -99,11 +113,12 @@ exports.sendNotification = async (req, res) => {
 };
 
 exports.sendBulkNotifications = async (req, res) => {
+      const connection = await db.getConnection();
       try {
             const { userIds, title, body, data = {} } = req.body;
 
             // Get tokens for all users
-            const [tokens] = await db.execute(
+            const [tokens] = await connection.query(
                   'SELECT token FROM push_tokens WHERE user_id IN (?)',
                   [userIds]
             );
@@ -113,6 +128,8 @@ exports.sendBulkNotifications = async (req, res) => {
                         BaseResponse.error(null, 'No registered devices found')
                   );
             }
+
+            console.log('Found tokens:', tokens); // Debug için log
 
             const registrationTokens = tokens.map(t => t.token);
 
@@ -145,15 +162,20 @@ exports.sendBulkNotifications = async (req, res) => {
                   }
             };
 
+            console.log('Sending message:', message); // Debug için log
+
             // Send notifications
             const response = await firebase.messaging().sendMulticast(message);
+
+            console.log('Firebase response:', response); // Debug için log
 
             res.json(
                   BaseResponse.success(
                         {
                               successCount: response.successCount,
                               failureCount: response.failureCount,
-                              responses: response.responses
+                              responses: response.responses,
+                              sentTokens: registrationTokens // Debug için token'ları da dönelim
                         },
                         'Bulk notifications sent'
                   )
@@ -161,5 +183,7 @@ exports.sendBulkNotifications = async (req, res) => {
       } catch (error) {
             console.error('Bulk notification error:', error);
             res.status(500).json(BaseResponse.error(error));
+      } finally {
+            connection.release();
       }
 }; 
