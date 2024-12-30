@@ -35,12 +35,12 @@ exports.registerToken = async (req, res) => {
 };
 
 exports.sendNotification = async (req, res) => {
+      const connection = await db.getConnection();
       try {
             const { userId, title, body, data = {} } = req.body;
 
-            // Get user's FCM token
-            const [tokens] = await db.execute(
-                  'SELECT token, platform FROM push_tokens WHERE user_id = ?',
+            const [tokens] = await connection.query(
+                  'SELECT token FROM push_tokens WHERE user_id = ?',
                   [userId]
             );
 
@@ -93,6 +93,8 @@ exports.sendNotification = async (req, res) => {
       } catch (error) {
             console.error('Send notification error:', error);
             res.status(500).json(BaseResponse.error(error));
+      } finally {
+            connection.release();
       }
 };
 

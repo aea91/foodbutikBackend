@@ -7,23 +7,30 @@ exports.getUsers = async (req, res) => {
             const limit = parseInt(req.query.limit) || 10;
             const offset = (page - 1) * limit;
 
-            // Toplam kayıt sayısını al
-            const [rows] = await db.execute('SELECT COUNT(*) as total FROM users');
-            const totalItems = rows[0].total;
+            // Önce bağlantıyı al
+            const connection = await db.getConnection();
 
-            // Kullanıcıları getir
-            const [users] = await db.execute(
-                  'SELECT id, name, email, profile_picture, created_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?',
-                  [limit, offset]
-            );
+            try {
+                  // Toplam kayıt sayısını al
+                  const [countResult] = await connection.query('SELECT COUNT(*) as total FROM users');
+                  const totalItems = countResult[0].total;
 
-            res.json(
-                  BaseResponse.paginated(users, {
-                        page,
-                        limit,
-                        totalItems
-                  }, 'Users retrieved successfully')
-            );
+                  // Kullanıcıları getir
+                  const [users] = await connection.query(
+                        'SELECT id, name, email, profile_picture, created_at FROM users ORDER BY created_at DESC LIMIT ?, ?',
+                        [offset, limit]
+                  );
+
+                  res.json(
+                        BaseResponse.paginated(users, {
+                              page,
+                              limit,
+                              totalItems
+                        }, 'Users retrieved successfully')
+                  );
+            } finally {
+                  connection.release(); // Bağlantıyı serbest bırak
+            }
       } catch (error) {
             console.error('Get users error:', error);
             res.status(500).json(BaseResponse.error(error));
@@ -39,28 +46,35 @@ exports.searchUsers = async (req, res) => {
 
             const searchPattern = `%${query}%`;
 
-            // Arama kriterlerine göre toplam sayıyı al
-            const [rows] = await db.execute(
-                  'SELECT COUNT(*) as total FROM users WHERE name LIKE ? OR email LIKE ?',
-                  [searchPattern, searchPattern]
-            );
-            const totalItems = rows[0].total;
+            // Önce bağlantıyı al
+            const connection = await db.getConnection();
 
-            // Kullanıcıları ara
-            const [users] = await db.execute(
-                  'SELECT id, name, email, profile_picture, created_at FROM users ' +
-                  'WHERE name LIKE ? OR email LIKE ? ' +
-                  'ORDER BY created_at DESC LIMIT ? OFFSET ?',
-                  [searchPattern, searchPattern, limit, offset]
-            );
+            try {
+                  // Arama kriterlerine göre toplam sayıyı al
+                  const [countResult] = await connection.query(
+                        'SELECT COUNT(*) as total FROM users WHERE name LIKE ? OR email LIKE ?',
+                        [searchPattern, searchPattern]
+                  );
+                  const totalItems = countResult[0].total;
 
-            res.json(
-                  BaseResponse.paginated(users, {
-                        page,
-                        limit,
-                        totalItems
-                  }, 'Users search completed')
-            );
+                  // Kullanıcıları ara
+                  const [users] = await connection.query(
+                        'SELECT id, name, email, profile_picture, created_at FROM users ' +
+                        'WHERE name LIKE ? OR email LIKE ? ' +
+                        'ORDER BY created_at DESC LIMIT ?, ?',
+                        [searchPattern, searchPattern, offset, limit]
+                  );
+
+                  res.json(
+                        BaseResponse.paginated(users, {
+                              page,
+                              limit,
+                              totalItems
+                        }, 'Users search completed')
+                  );
+            } finally {
+                  connection.release(); // Bağlantıyı serbest bırak
+            }
       } catch (error) {
             console.error('Search users error:', error);
             res.status(500).json(BaseResponse.error(error));

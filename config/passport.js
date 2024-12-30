@@ -8,9 +8,9 @@ passport.use(new FacebookStrategy({
       callbackURL: "http://104.248.36.45/api/auth/facebook/callback",
       profileFields: ['id', 'displayName', 'email', 'photos']
 }, async (accessToken, refreshToken, profile, done) => {
+      const connection = await db.getConnection();
       try {
-            // Check if user exists
-            const [users] = await db.execute(
+            const [users] = await connection.query(
                   'SELECT * FROM users WHERE facebook_id = ?',
                   [profile.id]
             );
@@ -21,7 +21,7 @@ passport.use(new FacebookStrategy({
             }
 
             // Create new user
-            const [result] = await db.execute(
+            const [result] = await connection.query(
                   'INSERT INTO users (name, email, facebook_id, profile_picture) VALUES (?, ?, ?, ?)',
                   [
                         profile.displayName,
@@ -42,6 +42,8 @@ passport.use(new FacebookStrategy({
             return done(null, newUser);
       } catch (error) {
             return done(error);
+      } finally {
+            connection.release();
       }
 }));
 

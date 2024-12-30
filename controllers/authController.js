@@ -50,11 +50,15 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+      const connection = await db.getConnection();
       try {
             const { email, password } = req.body;
             console.log('Login attempt for:', email);
 
-            const [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+            const [users] = await connection.query(
+                  'SELECT * FROM users WHERE email = ?',
+                  [email]
+            );
             if (users.length === 0) {
                   return res.status(401).json(
                         BaseResponse.error(null, 'Authentication failed')
@@ -87,6 +91,8 @@ exports.login = async (req, res) => {
             res.status(500).json(
                   BaseResponse.error(error)
             );
+      } finally {
+            connection.release();
       }
 };
 
