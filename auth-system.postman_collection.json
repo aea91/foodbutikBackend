@@ -22,9 +22,9 @@
                                     ],
                                     "body": {
                                           "mode": "raw",
-                                          "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"123456\"\n}"
+                                          "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"phone\": \"5551234567\",\n    \"password\": \"123456\"\n}"
                                     },
-                                    "description": "Create a new user account"
+                                    "description": "Create a new user account. Phone is optional and must be 10 digits."
                               }
                         },
                         {
@@ -173,9 +173,9 @@
                                     ],
                                     "body": {
                                           "mode": "raw",
-                                          "raw": "{\n    \"name\": \"Updated Name\",\n    \"email\": \"updated@example.com\",\n    \"password\": \"new_password\"\n}"
+                                          "raw": "{\n    \"name\": \"Updated Name\",\n    \"email\": \"updated@example.com\",\n    \"phone\": \"5559876543\",\n    \"password\": \"new_password\"\n}"
                                     },
-                                    "description": "Update user profile"
+                                    "description": "Update user profile. All fields are optional."
                               }
                         },
                         {
