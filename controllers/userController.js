@@ -4,6 +4,9 @@
  */
 const db = require('../config/database');
 const BaseResponse = require('../models/base/BaseResponse');
+const { validationResult } = require('express-validator');
+const bcrypt = require('bcrypt');
+const User = require('../models/User');
 
 /**
  * Kullanıcıları listeler (sayfalama ile)
@@ -14,32 +17,16 @@ exports.getUsers = async (req, res) => {
       try {
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 10;
-            const offset = (page - 1) * limit;
 
-            // Önce bağlantıyı al
-            const connection = await db.getConnection();
+            const { users, total } = await User.list(page, limit);
 
-            try {
-                  // Toplam kayıt sayısını al
-                  const [countResult] = await connection.query('SELECT COUNT(*) as total FROM users');
-                  const totalItems = countResult[0].total;
-
-                  // Kullanıcıları getir
-                  const [users] = await connection.query(
-                        'SELECT id, name, email, profile_picture, created_at FROM users ORDER BY created_at DESC LIMIT ?, ?',
-                        [offset, limit]
-                  );
-
-                  res.json(
-                        BaseResponse.paginated(users, {
-                              page,
-                              limit,
-                              totalItems
-                        }, 'Users retrieved successfully')
-                  );
-            } finally {
-                  connection.release(); // Bağlantıyı serbest bırak
-            }
+            res.json(
+                  BaseResponse.paginated(
+                        users,
+                        { page, limit, totalItems: total },
+                        'Users retrieved successfully'
+                  )
+            );
       } catch (error) {
             console.error('Get users error:', error);
             res.status(500).json(BaseResponse.error(error));
@@ -92,5 +79,97 @@ exports.searchUsers = async (req, res) => {
       } catch (error) {
             console.error('Search users error:', error);
             res.status(500).json(BaseResponse.error(error));
+      }
+};
+
+/**
+ * Kullanıcı güncelleme
+ * @param {Object} req - userId ve güncellenecek alanları içerir
+ * @param {Object} res - Güncelleme sonucunu döner
+ */
+exports.updateUser = async (req, res) => {
+      try {
+            const { userId } = req.params;
+
+            // Sadece kendi hesabını güncelleyebilir
+            if (req.userId != userId) {
+                  return res.status(403).json(
+                        BaseResponse.error(null, 'You can only update your own account')
+                  );
+            }
+
+            const user = await User.findById(userId);
+            if (!user) {
+                  return res.status(404).json(
+                        BaseResponse.error(null, 'User not found')
+                  );
+            }
+
+            await user.update(req.body);
+
+            res.json(
+                  BaseResponse.success(
+                        user,
+                        'User updated successfully'
+                  )
+            );
+      } catch (error) {
+            console.error('Update user error:', error);
+            res.status(500).json(BaseResponse.error(error));
+      }
+};
+
+/**
+ * Kullanıcı silme
+ * @param {Object} req - userId içerir
+ * @param {Object} res - Silme sonucunu döner
+ */
+exports.deleteUser = async (req, res) => {
+      const connection = await db.getConnection();
+      try {
+            const { userId } = req.params;
+
+            // Kullanıcının varlığını kontrol et
+            const [users] = await connection.query(
+                  'SELECT * FROM users WHERE id = ?',
+                  [userId]
+            );
+
+            if (users.length === 0) {
+                  return res.status(404).json(
+                        BaseResponse.error(null, 'User not found')
+                  );
+            }
+
+            // Sadece kendi hesabını silebilir
+            if (req.userId != userId) {
+                  return res.status(403).json(
+                        BaseResponse.error(null, 'You can only delete your own account')
+                  );
+            }
+
+            // İlişkili push token'ları sil
+            await connection.query(
+                  'DELETE FROM push_tokens WHERE user_id = ?',
+                  [userId]
+            );
+
+            // Kullanıcıyı sil
+            await connection.query(
+                  'DELETE FROM users WHERE id = ?',
+                  [userId]
+            );
+
+            res.json(
+                  BaseResponse.success(
+                        null,
+                        'User deleted successfully'
+                  )
+            );
+      } catch (error) {
+            console.error('Delete user error:', error);
+            res.status(500).json(BaseResponse.error(error));
+      } finally {
+            connection.release();
       }
 }; 

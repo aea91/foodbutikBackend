@@ -1,9 +1,9 @@
 /**
  * Kullanıcı işlemleri için route tanımlamaları
- * Kullanıcı listeleme ve arama endpoint'lerini içerir
  */
 const express = require('express');
 const router = express.Router();
+const { body } = require('express-validator');
 const userController = require('../controllers/userController');
 const authMiddleware = require('../middlewares/auth');
 
@@ -15,5 +15,15 @@ router.get('/', userController.getUsers);
 
 // Kullanıcı ara (sayfalama ile)
 router.get('/search', userController.searchUsers);
+
+// Kullanıcı güncelle
+router.put('/:userId', [
+      body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
+      body('email').optional().isEmail().withMessage('Please enter a valid email'),
+      body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], userController.updateUser);
+
+// Kullanıcı sil
+router.delete('/:userId', userController.deleteUser);
 
 module.exports = router; 
