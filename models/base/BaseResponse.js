@@ -55,17 +55,7 @@ class BaseResponse {
             const { page, limit, totalItems } = pagination;
             const totalPages = Math.ceil(totalItems / limit);
 
-            return new BaseResponse(true, message, {
-                  items,
-                  pagination: {
-                        page,
-                        limit,
-                        totalItems,
-                        totalPages,
-                        hasNextPage: page < totalPages,
-                        hasPrevPage: page > 1
-                  }
-            });
+            return new BaseResponse(true, message, items);
       }
 }
 

@@ -1,17 +1,19 @@
 {
       "info": {
             "name": "FoodButik API",
+            "description": "FoodButik API Documentation",
             "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
       },
       "item": [
             {
                   "name": "Auth",
+                  "description": "Authentication endpoints",
                   "item": [
                         {
                               "name": "Register",
                               "request": {
                                     "method": "POST",
-                                    "url": "http://104.248.36.45/api/auth/register",
+                                    "url": "{{baseUrl}}/api/auth/register",
                                     "header": [
                                           {
                                                 "key": "Content-Type",
@@ -21,14 +23,15 @@
                                     "body": {
                                           "mode": "raw",
                                           "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"123456\"\n}"
-                                    }
+                                    },
+                                    "description": "Create a new user account"
                               }
                         },
                         {
                               "name": "Login",
                               "request": {
                                     "method": "POST",
-                                    "url": "http://104.248.36.45/api/auth/login",
+                                    "url": "{{baseUrl}}/api/auth/login",
                                     "header": [
                                           {
                                                 "key": "Content-Type",
@@ -38,14 +41,15 @@
                                     "body": {
                                           "mode": "raw",
                                           "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"123456\"\n}"
-                                    }
+                                    },
+                                    "description": "Login with email and password"
                               }
                         },
                         {
                               "name": "Forgot Password",
                               "request": {
                                     "method": "POST",
-                                    "url": "http://104.248.36.45/api/auth/forgot-password",
+                                    "url": "{{baseUrl}}/api/auth/forgot-password",
                                     "header": [
                                           {
                                                 "key": "Content-Type",
@@ -55,14 +59,15 @@
                                     "body": {
                                           "mode": "raw",
                                           "raw": "{\n    \"email\": \"test@example.com\"\n}"
-                                    }
+                                    },
+                                    "description": "Request password reset email"
                               }
                         },
                         {
                               "name": "Reset Password",
                               "request": {
                                     "method": "POST",
-                                    "url": "http://104.248.36.45/api/auth/reset-password",
+                                    "url": "{{baseUrl}}/api/auth/reset-password",
                                     "header": [
                                           {
                                                 "key": "Content-Type",
@@ -72,35 +77,40 @@
                                     "body": {
                                           "mode": "raw",
                                           "raw": "{\n    \"token\": \"reset_token_from_email\",\n    \"password\": \"new_password\"\n}"
-                                    }
+                                    },
+                                    "description": "Reset password using token from email"
                               }
                         },
                         {
                               "name": "Facebook Login",
                               "request": {
                                     "method": "GET",
-                                    "url": "http://104.248.36.45/api/auth/facebook"
+                                    "url": "{{baseUrl}}/api/auth/facebook",
+                                    "description": "Initiate Facebook OAuth login"
                               }
                         }
                   ]
             },
             {
                   "name": "Users",
+                  "description": "User management endpoints",
                   "item": [
                         {
                               "name": "Get Users",
                               "request": {
                                     "method": "GET",
                                     "url": {
-                                          "raw": "http://104.248.36.45/api/users?page=1&limit=10",
+                                          "raw": "{{baseUrl}}/api/users?page=1&limit=10",
                                           "query": [
                                                 {
                                                       "key": "page",
-                                                      "value": "1"
+                                                      "value": "1",
+                                                      "description": "Page number"
                                                 },
                                                 {
                                                       "key": "limit",
-                                                      "value": "10"
+                                                      "value": "10",
+                                                      "description": "Items per page"
                                                 }
                                           ]
                                     },
@@ -109,7 +119,8 @@
                                                 "key": "Authorization",
                                                 "value": "Bearer {{token}}"
                                           }
-                                    ]
+                                    ],
+                                    "description": "Get paginated list of users"
                               }
                         },
                         {
@@ -117,19 +128,22 @@
                               "request": {
                                     "method": "GET",
                                     "url": {
-                                          "raw": "http://104.248.36.45/api/users/search?query=test&page=1&limit=10",
+                                          "raw": "{{baseUrl}}/api/users/search?query=test&page=1&limit=10",
                                           "query": [
                                                 {
                                                       "key": "query",
-                                                      "value": "test"
+                                                      "value": "test",
+                                                      "description": "Search query"
                                                 },
                                                 {
                                                       "key": "page",
-                                                      "value": "1"
+                                                      "value": "1",
+                                                      "description": "Page number"
                                                 },
                                                 {
                                                       "key": "limit",
-                                                      "value": "10"
+                                                      "value": "10",
+                                                      "description": "Items per page"
                                                 }
                                           ]
                                     },
@@ -138,14 +152,15 @@
                                                 "key": "Authorization",
                                                 "value": "Bearer {{token}}"
                                           }
-                                    ]
+                                    ],
+                                    "description": "Search users by name or email"
                               }
                         },
                         {
                               "name": "Update User",
                               "request": {
                                     "method": "PUT",
-                                    "url": "http://104.248.36.45/api/users/1",
+                                    "url": "{{baseUrl}}/api/users/{{userId}}",
                                     "header": [
                                           {
                                                 "key": "Content-Type",
@@ -159,32 +174,35 @@
                                     "body": {
                                           "mode": "raw",
                                           "raw": "{\n    \"name\": \"Updated Name\",\n    \"email\": \"updated@example.com\",\n    \"password\": \"new_password\"\n}"
-                                    }
+                                    },
+                                    "description": "Update user profile"
                               }
                         },
                         {
                               "name": "Delete User",
                               "request": {
                                     "method": "DELETE",
-                                    "url": "http://104.248.36.45/api/users/1",
+                                    "url": "{{baseUrl}}/api/users/{{userId}}",
                                     "header": [
                                           {
                                                 "key": "Authorization",
                                                 "value": "Bearer {{token}}"
                                           }
-                                    ]
+                                    ],
+                                    "description": "Delete user account"
                               }
                         }
                   ]
             },
             {
                   "name": "Notifications",
+                  "description": "Push notification endpoints",
                   "item": [
                         {
-                              "name": "Register Token",
+                              "name": "Register FCM Token",
                               "request": {
                                     "method": "POST",
-                                    "url": "http://104.248.36.45/api/notifications/register-token",
+                                    "url": "{{baseUrl}}/api/notifications/register-token",
                                     "header": [
                                           {
                                                 "key": "Content-Type",
@@ -197,15 +215,16 @@
                                     ],
                                     "body": {
                                           "mode": "raw",
-                                          "raw": "{\n    \"userId\": 1,\n    \"token\": \"firebase_fcm_token_here\",\n    \"platform\": \"android\"\n}"
-                                    }
+                                          "raw": "{\n    \"userId\": {{userId}},\n    \"token\": \"firebase_fcm_token_here\",\n    \"platform\": \"android\"\n}"
+                                    },
+                                    "description": "Register Firebase Cloud Messaging token for push notifications"
                               }
                         },
                         {
                               "name": "Send Notification",
                               "request": {
                                     "method": "POST",
-                                    "url": "http://104.248.36.45/api/notifications/send",
+                                    "url": "{{baseUrl}}/api/notifications/send",
                                     "header": [
                                           {
                                                 "key": "Content-Type",
@@ -218,15 +237,16 @@
                                     ],
                                     "body": {
                                           "mode": "raw",
-                                          "raw": "{\n    \"userId\": 1,\n    \"title\": \"Test Notification\",\n    \"body\": \"This is a test notification\",\n    \"data\": {\n        \"type\": \"test\",\n        \"action\": \"open_app\"\n    }\n}"
-                                    }
+                                          "raw": "{\n    \"userId\": {{userId}},\n    \"title\": \"Test Notification\",\n    \"body\": \"This is a test notification\",\n    \"data\": {\n        \"type\": \"test\",\n        \"action\": \"open_app\"\n    }\n}"
+                                    },
+                                    "description": "Send push notification to a specific user"
                               }
                         },
                         {
                               "name": "Send Bulk Notification",
                               "request": {
                                     "method": "POST",
-                                    "url": "http://104.248.36.45/api/notifications/send-bulk",
+                                    "url": "{{baseUrl}}/api/notifications/send-bulk",
                                     "header": [
                                           {
                                                 "key": "Content-Type",
@@ -240,7 +260,8 @@
                                     "body": {
                                           "mode": "raw",
                                           "raw": "{\n    \"userIds\": [1, 2, 3],\n    \"title\": \"Bulk Test Notification\",\n    \"body\": \"This is a bulk test notification\",\n    \"data\": {\n        \"type\": \"bulk_test\",\n        \"action\": \"open_profile\"\n    }\n}"
-                                    }
+                                    },
+                                    "description": "Send push notification to multiple users"
                               }
                         }
                   ]
