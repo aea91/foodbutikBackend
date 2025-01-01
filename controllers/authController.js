@@ -245,7 +245,10 @@ exports.forgotPassword = async (req, res) => {
                   }
             });
 
-            const resetUrl = `foodbutik://reset-password?token=${resetToken}`;
+            // Web sayfası URL'i
+            const resetUrl = `http://104.248.36.45/reset-password.html?token=${resetToken}`;
+
+
 
             // HTML formatında email
             const mailOptions = {

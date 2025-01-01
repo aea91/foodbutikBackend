@@ -20,6 +20,9 @@ app.use(passport.initialize());    // Passport kimlik doğrulama
 // Tüm API route'larını /api prefix'i ile yapılandır
 app.use('/api', routes);
 
+// Static dosyaları serve et
+app.use(express.static('public'));
+
 // Sunucuyu başlat
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
