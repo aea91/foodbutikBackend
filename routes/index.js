@@ -9,9 +9,9 @@ const { body } = require('express-validator');
 
 // Route modüllerini import et
 const authController = require('../controllers/authController');
-const notificationRoutes = require('./routes/notifications');
-const welcomeRoutes = require('./routes/welcome');
-const userRoutes = require('./routes/users');
+const notificationRoutes = require('./notifications');
+const welcomeRoutes = require('./welcome');
+const userRoutes = require('./users');
 
 // Public endpoints (token gerektirmez)
 router.post('/auth/register', [
@@ -29,7 +29,7 @@ router.get('/welcome', welcomeRoutes);
 router.use(authMiddleware);
 
 // Protected routes (token gerektirir)
-router.use('/auth', require('./routes/auth'));  // login, register ve şifre işlemleri dışındaki auth işlemleri
+router.use('/auth', require('./auth'));
 router.use('/users', userRoutes);
 router.use('/notifications', notificationRoutes);
 
