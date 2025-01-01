@@ -1,6 +1,5 @@
 /**
  * Kimlik doğrulama işlemleri için route tanımlamaları
- * Kayıt, giriş ve Facebook OAuth endpoint'lerini içerir
  */
 const express = require('express');
 const router = express.Router();
@@ -9,20 +8,32 @@ const authController = require('../controllers/authController');
 const passport = require('../config/passport');
 
 /**
- * Kullanıcı kaydı için validasyon kuralları
+ * Public routes (token gerektirmez)
  */
-const registerValidation = [
+// Kullanıcı kaydı
+router.post('/register', [
       body('name').trim().notEmpty().withMessage('Name is required'),
       body('email').isEmail().withMessage('Please enter a valid email'),
       body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
-];
-
-// Kullanıcı kaydı
-router.post('/register', registerValidation, authController.register);
+], authController.register);
 
 // Kullanıcı girişi
 router.post('/login', authController.login);
 
+// Şifre sıfırlama isteği
+router.post('/forgot-password', [
+      body('email').isEmail().withMessage('Please enter a valid email')
+], authController.forgotPassword);
+
+// Şifre sıfırlama linki doğrulama
+router.post('/reset-password', [
+      body('token').notEmpty().withMessage('Reset token is required'),
+      body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], authController.resetPassword);
+
+/**
+ * Protected routes (token gerektirir)
+ */
 // Facebook OAuth rotaları
 router.get('/facebook', passport.authenticate('facebook', {
       scope: ['email']

@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const db = require('../config/database');
 const BaseResponse = require('../models/base/BaseResponse');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 /**
  * Yeni kullanıcı kaydı
@@ -199,5 +201,143 @@ exports.getDataDeletionStatus = async (req, res) => {
                         code: 500
                   }
             });
+      }
+};
+
+/**
+ * Şifre sıfırlama isteği
+ * @param {Object} req - email bilgisini içerir
+ * @param {Object} res - İşlem sonucunu döner
+ */
+exports.forgotPassword = async (req, res) => {
+      const connection = await db.getConnection();
+      try {
+            const { email } = req.body;
+
+            // Kullanıcıyı kontrol et
+            const [users] = await connection.query(
+                  'SELECT * FROM users WHERE email = ?',
+                  [email]
+            );
+
+            if (users.length === 0) {
+                  return res.status(404).json(
+                        BaseResponse.error(null, 'User not found')
+                  );
+            }
+
+            // Reset token oluştur
+            const resetToken = crypto.randomBytes(32).toString('hex');
+            const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 saat geçerli
+
+            // Token'ı kaydet
+            await connection.query(
+                  'UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE email = ?',
+                  [resetToken, resetTokenExpiry, email]
+            );
+
+            // Gmail SMTP ayarları
+            const transporter = nodemailer.createTransport({
+                  service: 'gmail',
+                  auth: {
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASS // Gmail App Password
+                  }
+            });
+
+            const resetUrl = `foodbutik://reset-password?token=${resetToken}`;
+
+            // HTML formatında email
+            const mailOptions = {
+                  from: process.env.SMTP_USER,
+                  to: email,
+                  subject: 'FoodButik - Şifre Sıfırlama',
+                  html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #333;">Şifre Sıfırlama İsteği</h2>
+                    <p>Merhaba,</p>
+                    <p>FoodButik hesabınız için şifre sıfırlama talebinde bulundunuz.</p>
+                    <p>Şifrenizi sıfırlamak için aşağıdaki butona tıklayın:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${resetUrl}" 
+                           style="background-color: #4CAF50; 
+                                  color: white; 
+                                  padding: 12px 24px; 
+                                  text-decoration: none; 
+                                  border-radius: 4px;">
+                            Şifremi Sıfırla
+                        </a>
+                    </div>
+                    <p style="color: #666; font-size: 14px;">
+                        Bu link 1 saat süreyle geçerlidir.
+                        Eğer şifre sıfırlama talebinde bulunmadıysanız, bu emaili görmezden gelebilirsiniz.
+                    </p>
+                    <hr style="border: 1px solid #eee; margin: 20px 0;">
+                    <p style="color: #999; font-size: 12px;">
+                        Bu otomatik bir emaildir, lütfen yanıtlamayınız.
+                    </p>
+                </div>
+            `
+            };
+
+            // Email gönder
+            await transporter.sendMail(mailOptions);
+
+            res.json(
+                  BaseResponse.success(
+                        null,
+                        'Şifre sıfırlama linki email adresinize gönderildi'
+                  )
+            );
+      } catch (error) {
+            console.error('Forgot password error:', error);
+            res.status(500).json(BaseResponse.error(error));
+      } finally {
+            connection.release();
+      }
+};
+
+/**
+ * Şifre sıfırlama
+ * @param {Object} req - token ve yeni şifre bilgisini içerir
+ * @param {Object} res - İşlem sonucunu döner
+ */
+exports.resetPassword = async (req, res) => {
+      const connection = await db.getConnection();
+      try {
+            const { token, password } = req.body;
+
+            // Token'ı kontrol et
+            const [users] = await connection.query(
+                  'SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > NOW()',
+                  [token]
+            );
+
+            if (users.length === 0) {
+                  return res.status(400).json(
+                        BaseResponse.error(null, 'Invalid or expired reset token')
+                  );
+            }
+
+            // Yeni şifreyi hashle
+            const hashedPassword = await bcrypt.hash(password, 12);
+
+            // Şifreyi güncelle ve token'ı temizle
+            await connection.query(
+                  'UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE reset_token = ?',
+                  [hashedPassword, token]
+            );
+
+            res.json(
+                  BaseResponse.success(
+                        null,
+                        'Password has been reset successfully'
+                  )
+            );
+      } catch (error) {
+            console.error('Reset password error:', error);
+            res.status(500).json(BaseResponse.error(error));
+      } finally {
+            connection.release();
       }
 }; 

@@ -18,4 +18,8 @@ CREATE TABLE push_tokens (
     token VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
-); 
+);
+
+ALTER TABLE users
+ADD COLUMN reset_token VARCHAR(255),
+ADD COLUMN reset_token_expiry DATETIME; 
