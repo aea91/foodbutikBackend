@@ -14,6 +14,9 @@ const passport = require('../config/passport');
 router.post('/register', [
       body('name').trim().notEmpty().withMessage('Name is required'),
       body('email').isEmail().withMessage('Please enter a valid email'),
+      body('phone')
+            .matches(/^[0-9]{10}$/).withMessage('Phone number must be 10 digits')
+            .optional(),
       body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], authController.register);
 

@@ -9,10 +9,11 @@ const db = require('../config/database');
 const BaseResponse = require('../models/base/BaseResponse');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const User = require('../models/User');
 
 /**
  * Yeni kullanıcı kaydı
- * @param {Object} req - name, email ve password bilgilerini içerir
+ * @param {Object} req - name, email, phone ve password bilgilerini içerir
  * @param {Object} res - Kayıt sonucunu ve JWT token döner
  */
 exports.register = async (req, res) => {
@@ -24,24 +25,30 @@ exports.register = async (req, res) => {
                   );
             }
 
-            const { name, email, password } = req.body;
-            console.log('Register attempt for:', { name, email });
+            const { name, email, phone, password } = req.body;
 
-            const [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
-            if (users.length > 0) {
+            // Email kontrolü
+            const existingEmail = await User.findByEmail(email);
+            if (existingEmail) {
                   return res.status(400).json(
                         BaseResponse.error(null, 'Email already exists')
                   );
             }
 
-            const hashedPassword = await bcrypt.hash(password, 12);
-            const [result] = await db.execute(
-                  'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-                  [name, email, hashedPassword]
-            );
+            // Telefon kontrolü (eğer telefon varsa)
+            if (phone) {
+                  const existingPhone = await User.findByPhone(phone);
+                  if (existingPhone) {
+                        return res.status(400).json(
+                              BaseResponse.error(null, 'Phone number already exists')
+                        );
+                  }
+            }
+
+            const user = await User.create({ name, email, phone, password });
 
             const token = jwt.sign(
-                  { userId: result.insertId },
+                  { userId: user.id },
                   process.env.JWT_SECRET,
                   { expiresIn: '24h' }
             );
@@ -49,7 +56,7 @@ exports.register = async (req, res) => {
             res.status(201).json(
                   BaseResponse.success({
                         token,
-                        userId: result.insertId
+                        userId: user.id
                   }, 'User created successfully')
             );
       } catch (error) {

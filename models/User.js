@@ -10,6 +10,7 @@ class User {
             this.id = data.id;
             this.name = data.name;
             this.email = data.email;
+            this.phone = data.phone;
             this.password = data.password;
             this.facebook_id = data.facebook_id;
             this.profile_picture = data.profile_picture;
@@ -29,8 +30,8 @@ class User {
                   const hashedPassword = await bcrypt.hash(userData.password, 12);
 
                   const [result] = await connection.query(
-                        'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-                        [userData.name, userData.email, hashedPassword]
+                        'INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)',
+                        [userData.name, userData.email, userData.phone, hashedPassword]
                   );
 
                   const [user] = await connection.query(
@@ -73,6 +74,24 @@ class User {
                   const [users] = await connection.query(
                         'SELECT * FROM users WHERE id = ?',
                         [id]
+                  );
+                  return users.length ? new User(users[0]) : null;
+            } finally {
+                  connection.release();
+            }
+      }
+
+      /**
+       * Telefon numarasına göre kullanıcı bul
+       * @param {string} phone 
+       * @returns {Promise<User>}
+       */
+      static async findByPhone(phone) {
+            const connection = await db.getConnection();
+            try {
+                  const [users] = await connection.query(
+                        'SELECT * FROM users WHERE phone = ?',
+                        [phone]
                   );
                   return users.length ? new User(users[0]) : null;
             } finally {

@@ -20,6 +20,9 @@ router.get('/search', userController.searchUsers);
 router.put('/:userId', [
       body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
       body('email').optional().isEmail().withMessage('Please enter a valid email'),
+      body('phone')
+            .optional()
+            .matches(/^[0-9]{10}$/).withMessage('Phone number must be 10 digits'),
       body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], userController.updateUser);
 
