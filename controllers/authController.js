@@ -82,9 +82,11 @@ exports.login = async (req, res) => {
                   'SELECT * FROM users WHERE email = ?',
                   [email]
             );
+
+            // Kullanıcı bulunamadı veya şifre yanlış
             if (users.length === 0) {
-                  return res.status(401).json(
-                        BaseResponse.error(null, 'Authentication failed')
+                  return res.json(
+                        BaseResponse.error(null, 'Email or password is incorrect')
                   );
             }
 
@@ -92,8 +94,8 @@ exports.login = async (req, res) => {
             const isValid = await bcrypt.compare(password, user.password);
 
             if (!isValid) {
-                  return res.status(401).json(
-                        BaseResponse.error(null, 'Authentication failed')
+                  return res.json(
+                        BaseResponse.error(null, 'Email or password is incorrect')
                   );
             }
 
