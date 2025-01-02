@@ -10,23 +10,49 @@ const User = require('../models/User');
 
 /**
  * Kullanıcıları listeler (sayfalama ile)
- * @param {Object} req - page ve limit query parametrelerini içerir
+ * @param {Object} req - page, limit ve query parametrelerini içerir
  * @param {Object} res - Kullanıcı listesini döner
  */
 exports.getUsers = async (req, res) => {
       try {
+            const { query = '' } = req.query;
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 10;
+            const offset = (page - 1) * limit;
 
-            const { users, total } = await User.list(page, limit);
+            const connection = await db.getConnection();
+            try {
+                  let countQuery = 'SELECT COUNT(*) as total FROM users';
+                  let usersQuery = 'SELECT * FROM users';
+                  let queryParams = [];
 
-            res.json(
-                  BaseResponse.paginated(
-                        users,
-                        { page, limit, totalItems: total },
-                        'Users retrieved successfully'
-                  )
-            );
+                  // Eğer arama sorgusu varsa
+                  if (query.trim()) {
+                        countQuery += ' WHERE LOWER(name) LIKE LOWER(?)';
+                        usersQuery += ' WHERE LOWER(name) LIKE LOWER(?)';
+                        queryParams.push(`%${query.trim()}%`);
+                  }
+
+                  usersQuery += ' ORDER BY created_at DESC LIMIT ?, ?';
+                  queryParams.push(offset, limit);
+
+                  const [countResult] = await connection.query(countQuery, queryParams.slice(0, -2));
+                  const [users] = await connection.query(usersQuery, queryParams);
+
+                  res.json(
+                        BaseResponse.paginated(
+                              users,
+                              {
+                                    page,
+                                    limit,
+                                    totalItems: countResult[0].total
+                              },
+                              'Users retrieved successfully'
+                        )
+                  );
+            } finally {
+                  connection.release();
+            }
       } catch (error) {
             console.error('Get users error:', error);
             res.status(500).json(BaseResponse.error(error));
@@ -45,23 +71,34 @@ exports.searchUsers = async (req, res) => {
             const limit = parseInt(req.query.limit) || 10;
             const offset = (page - 1) * limit;
 
-            const searchPattern = `%${query}%`;
+            // Boş sorgu kontrolü
+            if (!query.trim()) {
+                  return res.json(
+                        BaseResponse.paginated([], {
+                              page,
+                              limit,
+                              totalItems: 0
+                        }, 'No search query provided')
+                  );
+            }
+
+            const searchPattern = `%${query.trim()}%`;
 
             // Önce bağlantıyı al
             const connection = await db.getConnection();
 
             try {
-                  // Sadece name'e göre ara
+                  // Case-insensitive arama yap
                   const [countResult] = await connection.query(
-                        'SELECT COUNT(*) as total FROM users WHERE name LIKE ?',
+                        'SELECT COUNT(*) as total FROM users WHERE LOWER(name) LIKE LOWER(?)',
                         [searchPattern]
                   );
                   const totalItems = countResult[0].total;
 
-                  // Kullanıcıları ara (sadece name'e göre)
+                  // Kullanıcıları ara (case-insensitive)
                   const [users] = await connection.query(
                         'SELECT id, name, email, profile_picture, created_at FROM users ' +
-                        'WHERE name LIKE ? ' +
+                        'WHERE LOWER(name) LIKE LOWER(?) ' +
                         'ORDER BY created_at DESC LIMIT ?, ?',
                         [searchPattern, offset, limit]
                   );
