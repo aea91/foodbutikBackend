@@ -36,6 +36,10 @@ router.post('/auth/reset-password', [
       body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], authController.resetPassword);
 
+// Facebook veri silme webhook'u (public)
+router.post('/auth/facebook/data-deletion', authController.handleDataDeletion);
+router.get('/auth/facebook/data-deletion-status', authController.getDataDeletionStatus);
+
 // Welcome endpoint (public)
 router.get('/welcome', welcomeRoutes);
 
@@ -49,9 +53,5 @@ router.use(authMiddleware);
 // Protected routes (token gerektirir)
 router.use('/users', userRoutes);
 router.use('/notifications', notificationRoutes);
-
-// Protected auth routes (veri silme gibi işlemler için)
-router.post('/auth/facebook/data-deletion', authRoutes);
-router.get('/auth/facebook/data-deletion-status', authRoutes);
 
 module.exports = router; 
