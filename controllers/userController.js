@@ -28,9 +28,12 @@ exports.getUsers = async (req, res) => {
 
                   // Eğer arama sorgusu varsa
                   if (query.trim()) {
-                        countQuery += ' WHERE LOWER(name) LIKE LOWER(?)';
-                        usersQuery += ' WHERE LOWER(name) LIKE LOWER(?)';
-                        queryParams.push(`%${query.trim()}%`);
+                        const searchTerm = query.trim();
+                        // REGEXP kullanarak tam kelime araması yap
+                        countQuery += ' WHERE name REGEXP ?';
+                        usersQuery += ' WHERE name REGEXP ?';
+                        // Kelime sınırlarını kontrol et
+                        queryParams.push(`[[:<:]]${searchTerm}[[:>:]]`);
                   }
 
                   usersQuery += ' ORDER BY created_at DESC LIMIT ?, ?';
