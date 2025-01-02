@@ -74,16 +74,11 @@ exports.sendNotification = async (req, res) => {
                   [userId]
             );
 
-            console.log('Found tokens for user:', tokens); // Debug log
-
-            if (tokens.length === 0) {
+            if (!tokens.length) {
                   return res.status(404).json(
-                        BaseResponse.error(null, 'User has no registered device')
+                        BaseResponse.error(null, 'User has no registered device token')
                   );
             }
-
-            const token = tokens[0].token;
-            console.log('Using token:', token); // Debug log
 
             // Prepare notification
             const message = {
@@ -95,7 +90,7 @@ exports.sendNotification = async (req, res) => {
                         ...data,
                         click_action: 'FLUTTER_NOTIFICATION_CLICK'
                   },
-                  token: token,
+                  token: tokens[0].token,
                   android: {
                         priority: 'high',
                         notification: {
@@ -114,19 +109,13 @@ exports.sendNotification = async (req, res) => {
                   }
             };
 
-            console.log('Sending message:', message); // Debug log
-
-            // Send notification
+            // Send notification using Firebase Messaging
             const response = await firebase.messaging().send(message);
-
-            console.log('Firebase response:', response); // Debug log
+            console.log('Successfully sent message:', response);
 
             res.json(
                   BaseResponse.success(
-                        {
-                              messageId: response,
-                              token: token // Debug için token'ı da dönelim
-                        },
+                        { messageId: response },
                         'Notification sent successfully'
                   )
             );

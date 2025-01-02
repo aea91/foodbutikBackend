@@ -20,6 +20,10 @@ async function initializeFirebase() {
                   console.log('Firebase already initialized:', admin.app().name);
             }
 
+            // Messaging servisini test et
+            const messaging = admin.messaging();
+            console.log('Firebase Messaging service is ready');
+
             return admin;
       } catch (error) {
             console.error('Firebase initialization error:', error);
@@ -30,7 +34,8 @@ async function initializeFirebase() {
 // Firebase'i hemen başlat
 initializeFirebase().catch(console.error);
 
+// Messaging servisini dışa aktar
 module.exports = {
-      initializeFirebase,
+      messaging: () => admin.messaging(),
       admin
 }; 
