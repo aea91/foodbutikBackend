@@ -10,6 +10,10 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
 
+const DATA_DELETION_BASE_URL = process.env.NODE_ENV === 'production'
+      ? 'https://foodbutik.com'  // Production URL
+      : 'http://104.248.36.45';  // Development URL
+
 /**
  * Yeni kullanıcı kaydı
  * @param {Object} req - name, email, phone ve password bilgilerini içerir
@@ -168,7 +172,7 @@ exports.handleDataDeletion = async (req, res) => {
             // Facebook test isteği için özel yanıt
             if (!signed_request) {
                   return res.status(200).json({
-                        url: `http://104.248.36.45/api/auth/facebook/data-deletion-status`,
+                        url: `${DATA_DELETION_BASE_URL}/api/auth/facebook/data-deletion-status`,
                         confirmation_code: "test_confirmation_code"
                   });
             }

@@ -36,16 +36,14 @@ router.post('/auth/reset-password', [
       body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], authController.resetPassword);
 
-// Facebook veri silme webhook'u (public)
+// Facebook ile ilgili tüm endpoint'ler (public)
+router.get('/auth/facebook', authRoutes);
+router.get('/auth/facebook/callback', authRoutes);
 router.post('/auth/facebook/data-deletion', authController.handleDataDeletion);
 router.get('/auth/facebook/data-deletion-status', authController.getDataDeletionStatus);
 
 // Welcome endpoint (public)
 router.get('/welcome', welcomeRoutes);
-
-// Facebook OAuth rotaları (public)
-router.get('/auth/facebook', authRoutes);
-router.get('/auth/facebook/callback', authRoutes);
 
 // Buradan sonraki tüm route'lar için auth middleware'i uygula
 router.use(authMiddleware);
