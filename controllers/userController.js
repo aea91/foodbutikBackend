@@ -29,11 +29,11 @@ exports.getUsers = async (req, res) => {
                   // Eğer arama sorgusu varsa
                   if (query.trim()) {
                         const searchTerm = query.trim();
-                        // REGEXP kullanarak tam kelime araması yap
+                        // Kelime sınırları ile arama yap
                         countQuery += ' WHERE name REGEXP ?';
                         usersQuery += ' WHERE name REGEXP ?';
-                        // Kelime sınırlarını kontrol et
-                        queryParams.push(`[[:<:]]${searchTerm}[[:>:]]`);
+                        // \\b ile kelime sınırlarını belirt
+                        queryParams.push(`\\b${searchTerm}\\b`);
                   }
 
                   usersQuery += ' ORDER BY created_at DESC LIMIT ?, ?';
