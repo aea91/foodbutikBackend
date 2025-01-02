@@ -1,6 +1,5 @@
 /**
  * Kimlik doğrulama işlemlerini yöneten controller
- * Kayıt, giriş ve Facebook OAuth işlemlerini yönetir
  */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
