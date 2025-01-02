@@ -6,7 +6,6 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middlewares/auth');
 const { body } = require('express-validator');
-const passport = require('passport');
 
 // Route modüllerini import et
 const authRoutes = require('./auth');
@@ -37,22 +36,8 @@ router.post('/auth/reset-password', [
       body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], authController.resetPassword);
 
-// Privacy Policy endpoint (public)
-router.get('/privacy-policy', (req, res) => {
-      res.sendFile('privacy-policy.html', { root: './public' });
-});
-
 // Welcome endpoint (public)
 router.get('/welcome', welcomeRoutes);
-
-// Facebook ile ilgili tüm endpoint'ler (public)
-router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
-router.get('/auth/facebook/callback',
-      passport.authenticate('facebook', { session: false }),
-      authController.facebookCallback
-);
-router.post('/auth/facebook/data-deletion', authController.handleDataDeletion);
-router.get('/auth/facebook/data-deletion-status', authController.getDataDeletionStatus);
 
 // Protected routes (token gerektirir)
 router.use(authMiddleware);

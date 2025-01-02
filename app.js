@@ -4,7 +4,7 @@
  */
 const express = require('express');
 const cors = require('cors');
-const passport = require('passport');
+const { initializeFirebase } = require('./config/firebase.js');
 require('dotenv').config();
 
 // Ana route modülünü import et
@@ -15,7 +15,6 @@ const app = express();
 // Middleware yapılandırması
 app.use(cors());                    // Cross-Origin Resource Sharing
 app.use(express.json());           // JSON request body parser
-app.use(passport.initialize());    // Passport kimlik doğrulama
 
 // Tüm API route'larını /api prefix'i ile yapılandır
 app.use('/api', routes);
@@ -25,6 +24,12 @@ app.use(express.static('public'));
 
 // Sunucuyu başlat
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+app.listen(PORT, async () => {
+      try {
+            await initializeFirebase();
+            console.log(`Server running on port ${PORT}`);
+      } catch (error) {
+            console.error('Server startup error:', error);
+            process.exit(1);
+      }
 }); 

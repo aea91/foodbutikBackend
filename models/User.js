@@ -12,11 +12,7 @@ class User {
             this.email = data.email;
             this.phone = data.phone;
             this.password = data.password;
-            this.facebook_id = data.facebook_id;
-            this.profile_picture = data.profile_picture;
             this.created_at = data.created_at;
-            this.reset_token = data.reset_token;
-            this.reset_token_expiry = data.reset_token_expiry;
       }
 
       /**

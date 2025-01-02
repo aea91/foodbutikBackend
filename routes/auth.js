@@ -5,7 +5,6 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
-const passport = require('../config/passport');
 
 /**
  * Public routes (token gerektirmez)
@@ -34,27 +33,10 @@ router.post('/reset-password', [
       body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], authController.resetPassword);
 
-/**
- * Protected routes (token gerektirir)
- */
-// Facebook OAuth rotaları
-router.get('/facebook', passport.authenticate('facebook', {
-      scope: ['email']
-}));
 
-// Facebook callback
-router.get('/facebook/callback',
-      passport.authenticate('facebook', {
-            session: false,
-            failureRedirect: '/login'
-      }),
-      authController.facebookCallback
-);
 
-// Facebook veri silme webhook'u
-router.post('/facebook/data-deletion', authController.handleDataDeletion);
 
-// Facebook veri silme durumu kontrolü
-router.get('/facebook/data-deletion-status', authController.getDataDeletionStatus);
+
+
 
 module.exports = router; 
