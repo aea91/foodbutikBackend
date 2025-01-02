@@ -5,26 +5,25 @@
 const admin = require('firebase-admin');
 const path = require('path');
 
-try {
-      // Eğer önceden başlatılmış bir Firebase uygulaması varsa temizle
-      if (admin.apps.length) {
-            admin.app().delete();
-      }
+// Mevcut uygulamaları temizle
+if (admin.apps.length) {
+      admin.apps.forEach(app => app.delete());
+}
 
+try {
       // Firebase servis hesabı anahtarını yükle
-      // Bu anahtar Firebase Console'dan oluşturulan JSON dosyasıdır
       const serviceAccount = require(path.join(__dirname, 'firebase-key.json'));
 
       // Firebase Admin SDK'yı başlat
-      // credential: Kimlik doğrulama için servis hesabı kullan
       admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
+            credential: admin.credential.cert(serviceAccount),
+            projectId: serviceAccount.project_id
       });
 
-      console.log('Firebase initialized successfully with new credentials');
+      console.log('Firebase initialized successfully');
 } catch (error) {
       console.error('Firebase initialization error:', error);
-      throw error; // Uygulama başlatılırken hata olursa fırlat
+      throw error;
 }
 
 module.exports = admin; 
