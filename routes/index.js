@@ -37,6 +37,11 @@ router.post('/auth/reset-password', [
       body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], authController.resetPassword);
 
+// Privacy Policy endpoint (public)
+router.get('/privacy-policy', (req, res) => {
+      res.sendFile('privacy-policy.html', { root: './public' });
+});
+
 // Welcome endpoint (public)
 router.get('/welcome', welcomeRoutes);
 
