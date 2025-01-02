@@ -161,6 +161,7 @@ exports.facebookCallback = async (req, res) => {
  * @param {Object} res - Silme işlemi URL'ini döner
  */
 exports.handleDataDeletion = async (req, res) => {
+      const connection = await db.getConnection();
       try {
             const { signed_request } = req.body;
 
@@ -174,9 +175,17 @@ exports.handleDataDeletion = async (req, res) => {
             }
 
             // Facebook'un beklediği formatta yanıt
+            const confirmationCode = Date.now().toString();
+
+            // Silme isteğini kaydet
+            await connection.query(
+                  'INSERT INTO facebook_deletion_requests (confirmation_code, status) VALUES (?, ?)',
+                  [confirmationCode, 'pending']
+            );
+
             res.json({
-                  url: `http://104.248.36.45/api/auth/facebook/data-deletion-status`,
-                  confirmation_code: Date.now().toString()
+                  url: `http://104.248.36.45/api/auth/facebook/data-deletion-status?id=${confirmationCode}`,
+                  confirmation_code: confirmationCode
             });
       } catch (error) {
             console.error('Data deletion error:', error);
@@ -186,6 +195,8 @@ exports.handleDataDeletion = async (req, res) => {
                         code: 500
                   }
             });
+      } finally {
+            connection.release();
       }
 };
 
@@ -195,10 +206,27 @@ exports.handleDataDeletion = async (req, res) => {
  * @param {Object} res - Silme işlemi durumunu döner
  */
 exports.getDataDeletionStatus = async (req, res) => {
+      const connection = await db.getConnection();
       try {
-            // Facebook'un beklediği formatta yanıt
+            const { id } = req.query;
+
+            // Silme işlemi durumunu kontrol et
+            const [requests] = await connection.query(
+                  'SELECT * FROM facebook_deletion_requests WHERE confirmation_code = ?',
+                  [id]
+            );
+
+            if (requests.length === 0) {
+                  return res.status(404).json({
+                        error: {
+                              message: 'Deletion request not found',
+                              code: 404
+                        }
+                  });
+            }
+
             res.json({
-                  status: 'complete',
+                  status: requests[0].status,
                   completion_timestamp: Math.floor(Date.now() / 1000)
             });
       } catch (error) {
@@ -209,6 +237,8 @@ exports.getDataDeletionStatus = async (req, res) => {
                         code: 500
                   }
             });
+      } finally {
+            connection.release();
       }
 };
 

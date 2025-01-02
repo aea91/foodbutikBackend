@@ -23,3 +23,11 @@ CREATE TABLE push_tokens (
 ALTER TABLE users
 ADD COLUMN reset_token VARCHAR(255),
 ADD COLUMN reset_token_expiry DATETIME; 
+
+CREATE TABLE facebook_deletion_requests (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    confirmation_code VARCHAR(255) NOT NULL,
+    status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP NULL
+); 
