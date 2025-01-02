@@ -37,6 +37,9 @@ router.post('/auth/reset-password', [
       body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], authController.resetPassword);
 
+// Welcome endpoint (public)
+router.get('/welcome', welcomeRoutes);
+
 // Facebook ile ilgili tüm endpoint'ler (public)
 router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 router.get('/auth/facebook/callback',
@@ -46,13 +49,8 @@ router.get('/auth/facebook/callback',
 router.post('/auth/facebook/data-deletion', authController.handleDataDeletion);
 router.get('/auth/facebook/data-deletion-status', authController.getDataDeletionStatus);
 
-// Welcome endpoint (public)
-router.get('/welcome', welcomeRoutes);
-
-// Buradan sonraki tüm route'lar için auth middleware'i uygula
-router.use(authMiddleware);
-
 // Protected routes (token gerektirir)
+router.use(authMiddleware);
 router.use('/users', userRoutes);
 router.use('/notifications', notificationRoutes);
 
