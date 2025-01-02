@@ -4,7 +4,7 @@
  */
 const express = require('express');
 const cors = require('cors');
-const { initializeFirebase } = require('./config/firebase.js');
+const firebase = require('./config/firebase.js');
 require('dotenv').config();
 
 // Ana route modülünü import et
@@ -24,12 +24,6 @@ app.use(express.static('public'));
 
 // Sunucuyu başlat
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, async () => {
-      try {
-            await initializeFirebase();
-            console.log(`Server running on port ${PORT}`);
-      } catch (error) {
-            console.error('Server startup error:', error);
-            process.exit(1);
-      }
+app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
 }); 
