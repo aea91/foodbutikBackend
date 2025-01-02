@@ -51,19 +51,19 @@ exports.searchUsers = async (req, res) => {
             const connection = await db.getConnection();
 
             try {
-                  // Arama kriterlerine göre toplam sayıyı al
+                  // Sadece name'e göre ara
                   const [countResult] = await connection.query(
-                        'SELECT COUNT(*) as total FROM users WHERE name LIKE ? OR email LIKE ?',
-                        [searchPattern, searchPattern]
+                        'SELECT COUNT(*) as total FROM users WHERE name LIKE ?',
+                        [searchPattern]
                   );
                   const totalItems = countResult[0].total;
 
-                  // Kullanıcıları ara
+                  // Kullanıcıları ara (sadece name'e göre)
                   const [users] = await connection.query(
                         'SELECT id, name, email, profile_picture, created_at FROM users ' +
-                        'WHERE name LIKE ? OR email LIKE ? ' +
+                        'WHERE name LIKE ? ' +
                         'ORDER BY created_at DESC LIMIT ?, ?',
-                        [searchPattern, searchPattern, offset, limit]
+                        [searchPattern, offset, limit]
                   );
 
                   res.json(
@@ -74,7 +74,7 @@ exports.searchUsers = async (req, res) => {
                         }, 'Users search completed')
                   );
             } finally {
-                  connection.release(); // Bağlantıyı serbest bırak
+                  connection.release();
             }
       } catch (error) {
             console.error('Search users error:', error);
