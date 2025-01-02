@@ -7,6 +7,13 @@ const db = require('../config/database');
 const firebase = require('../config/firebase');
 const BaseResponse = require('../models/base/BaseResponse');
 
+// Firebase bağlantısını test et
+firebase.app().then(app => {
+      console.log('Firebase initialized successfully:', app.name);
+}).catch(error => {
+      console.error('Firebase initialization error:', error);
+});
+
 /**
  * FCM token'ı kaydeder
  * @param {Object} req - userId, token ve platform bilgilerini içerir
