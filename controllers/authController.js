@@ -156,60 +156,59 @@ exports.forgotPassword = async (req, res) => {
                   [resetToken, resetTokenExpiry, email]
             );
 
-            // Gmail SMTP ayarları
-            const transporter = nodemailer.createTransport({
-                  service: 'gmail',
-                  auth: {
-                        user: process.env.SMTP_USER,
-                        pass: process.env.SMTP_PASS // Gmail App Password
-                  }
-            });
+            // Email gönderimi Promise olarak arka planda çalışacak
+            Promise.resolve().then(() => {
+                  const transporter = nodemailer.createTransport({
+                        service: 'gmail',
+                        auth: {
+                              user: process.env.SMTP_USER,
+                              pass: process.env.SMTP_PASS
+                        }
+                  });
 
-            // Web sayfası URL'i
-            const resetUrl = `http://104.248.36.45/reset-password.html?token=${resetToken}`;
+                  const resetUrl = `http://104.248.36.45/reset-password.html?token=${resetToken}`;
 
+                  const mailOptions = {
+                        from: process.env.SMTP_USER,
+                        to: email,
+                        subject: 'FoodButik - Şifre Sıfırlama',
+                        html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                            <h2 style="color: #333;">Şifre Sıfırlama İsteği</h2>
+                            <p>Merhaba,</p>
+                            <p>FoodButik hesabınız için şifre sıfırlama talebinde bulundunuz.</p>
+                            <p>Şifrenizi sıfırlamak için aşağıdaki butona tıklayın:</p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="${resetUrl}" 
+                                   style="background-color: #4CAF50; 
+                                          color: white; 
+                                          padding: 12px 24px; 
+                                          text-decoration: none; 
+                                          border-radius: 4px;">
+                                    Şifremi Sıfırla
+                                </a>
+                            </div>
+                            <p style="color: #666; font-size: 14px;">
+                                Bu link 1 saat süreyle geçerlidir.
+                                Eğer şifre sıfırlama talebinde bulunmadıysanız, bu emaili görmezden gelebilirsiniz.
+                            </p>
+                        </div>
+                    `
+                  };
 
-
-            // HTML formatında email
-            const mailOptions = {
-                  from: process.env.SMTP_USER,
-                  to: email,
-                  subject: 'FoodButik - Şifre Sıfırlama',
-                  html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #333;">Şifre Sıfırlama İsteği</h2>
-                    <p>Merhaba,</p>
-                    <p>FoodButik hesabınız için şifre sıfırlama talebinde bulundunuz.</p>
-                    <p>Şifrenizi sıfırlamak için aşağıdaki butona tıklayın:</p>
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${resetUrl}" 
-                           style="background-color: #4CAF50; 
-                                  color: white; 
-                                  padding: 12px 24px; 
-                                  text-decoration: none; 
-                                  border-radius: 4px;">
-                            Şifremi Sıfırla
-                        </a>
-                    </div>
-                    <p style="color: #666; font-size: 14px;">
-                        Bu link 1 saat süreyle geçerlidir.
-                        Eğer şifre sıfırlama talebinde bulunmadıysanız, bu emaili görmezden gelebilirsiniz.
-                    </p>
-                    <hr style="border: 1px solid #eee; margin: 20px 0;">
-                    <p style="color: #999; font-size: 12px;">
-                        Bu otomatik bir emaildir, lütfen yanıtlamayınız.
-                    </p>
-                </div>
-            `
-            };
-
-            // Email gönder
-            await transporter.sendMail(mailOptions);
+                  return transporter.sendMail(mailOptions);
+            })
+                  .then(() => {
+                        console.log('Reset password email sent to:', email);
+                  })
+                  .catch(error => {
+                        console.error('Reset password email error:', error);
+                  });
 
             res.json(
                   BaseResponse.success(
                         null,
-                        'Şifre sıfırlama linki email adresinize gönderildi'
+                        'Şifre sıfırlama linki email adresinize gönderilecek'
                   )
             );
       } catch (error) {
